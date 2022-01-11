@@ -1,0 +1,18 @@
+version: '3'
+
+services:
+  database:
+    image: postgres
+    ports:
+      - '5432:5432'
+    container_name: clothes_project
+    restart: always
+    volumes:
+      - clothes_project-disk:/var/lib/postgresql/data
+    environment:
+      POSTGRES_USER: ademir
+      POSTGRES_PASSWORD: ademiro
+      POSTGRES_DB: clothes_project
+
+volumes:
+  clothes_project-disk:
