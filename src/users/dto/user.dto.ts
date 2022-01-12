@@ -40,5 +40,4 @@ export class DtoUser {
   @MinLength(8)
   @ApiProperty()
   passwordConfirmation: string;
-
 }
