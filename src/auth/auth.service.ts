@@ -14,23 +14,23 @@ export class AuthService {
 
   async login(data: LoginDto): Promise<AuthResponse> {
     const { email, password } = data;
-    const user = await this.database.user.findUnique({ where: { email } });
+    const users = await this.database.users.findUnique({ where: { email } });
 
-    if (!user) {
+    if (!users) {
       throw new NotFoundException('Usuário não encontrado');
     }
 
-    const hashValid = await bcrypt.compare(password, user.password);
+    const hashValid = await bcrypt.compare(password, users.password);
 
     if (!hashValid) {
       throw new UnauthorizedException('Credenciais inválidas');
     }
 
-    delete user.password;
+    delete users.password;
 
     return {
       token: this.jwt.sign({ email }),
-      user,
+      users,
     };
   }
 }

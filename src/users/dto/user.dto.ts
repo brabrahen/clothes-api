@@ -12,7 +12,7 @@ export class DtoUser {
   @IsNotEmpty()
   @ApiProperty()
   nickname: string;
-  
+
   @IsString()
   @IsNotEmpty()
   @IsEmail()

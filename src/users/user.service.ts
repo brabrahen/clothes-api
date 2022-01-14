@@ -1,101 +1,113 @@
-import { Injectable, ConflictException, NotFoundException } from '@prisma/client';
-import { Users, Clothes } from '@prisma/client';
+import {
+  Injectable,
+  ConflictException,
+  NotFoundException,
+} from '@nestjs/common';
+import { Users } from '@prisma/client';
 import { PrismaService } from 'src/prisma.service';
-import { UserDto } from './dto/user.dto';
+import { DtoUser } from './dto/user.dto';
 
 import * as bcrypt from 'bcrypt';
-import { Console } from 'console';
-import { transcode } from 'buffer';
 
 @Injectable()
-eport class UserService {
-    constructor(private database: PrismaService) {}
+export class UsersService {
+  constructor(private database: PrismaService) {}
 
-    async create(data: UserDto): Promise<Users> {
-        const auth = await this.database.users.findFirst({
-            where: {
-                OR: [
-                    {
-                        email: data.email,
-                    },
-                    {
-                        nickname: data.nickname,
-                    },
-                ],
-            },
-        }),
+  async create(data: DtoUser): Promise<Users> {
+    const auth = await this.database.users.findFirst({
+      where: {
+        OR: [
+          {
+            email: data.email,
+          },
+          {
+            nickname: data.nickname,
+          },
+        ],
+      },
+    });
 
-        if (auth) {
-            throw new ConflictException('Dados já cadastrados');
-        }
-
-        if (data.password !== data.passwordConfirmation){
-            throw new ConflictException('Senhas não conferem');
-        }
-
-        delete data.passwordConfirmation;
-
-        const hashPassword = await bcrypt.hash(data.password, 10);
-        const user = await this.database.users.create({
-            data: {
-                ...data,
-                password: hashPassword,
-            },
-        }),
-
-        delete user.password;
-        return user
+    if (auth) {
+      throw new ConflictException('Dados já cadastrados');
     }
 
-    async addToFav(Users, clothesId: string) {
-        const clothes = await this.database.clothes.findUnique({
-            where: { id: clothesId}
-        });
-
-        if(!clothes){
-            throw new NotFoundException('Peça não encontrada');
-        }
-
-        const addToCart = await this.database.users.findUnique({
-            where: { id: Users.id },
-            include: {
-                clothes: true,
-            },
-        });
-
-        const userFavList = addToCart.clothes;
-        let foundClothes = false;
-
-        userFavList.map((clothes) => {
-            if (clothes.id === clothesId){
-                foundClothes = true;
-            }
-        });
-
-        if (foundClothes) {
-            await this.database.users.update({
-                where: { id: Users.id },
-                data: {
-                    games: {
-                        disconect: {
-                            id: clothes.id,
-                        },
-                    },
-                },
-            }),
-            return { message: 'Peça removida do carrinho' };
-        } else {
-            await this.database.users.update({
-                where: { id: Users.id },
-                data: {
-                    games: {
-                        connect: {
-                            id: clothes.id,
-                        },
-                    },
-                },
-            }),
-            return { message: 'Peça adicionada ao carrinho '}
-        }
+    if (data.password !== data.passwordConfirmation) {
+      throw new ConflictException('Senhas não conferem');
     }
+
+    delete data.passwordConfirmation;
+
+    const hashPassword = await bcrypt.hash(data.password, 10);
+    const user = await this.database.users.create({
+      data: {
+        ...data,
+        password: hashPassword,
+      },
+    });
+
+    delete user.password;
+    return user;
+  }
+
+  async UserList(UsersID: string) {
+    const clothes = await this.database.users.findUnique({
+      where: { id: UsersID },
+      include: {
+        clothes: true,
+      },
+    });
+    return clothes;
+  }
+
+  async addToCart(user: Users, clothesID: string) {
+    const clothe = await this.database.clothes.findUnique({
+      where: { id: clothesID },
+    });
+
+    if (!clothe) {
+      throw new NotFoundException('Item não encontrado');
+    }
+
+    const userFavItem = await this.database.users.findUnique({
+      where: { id: user.id },
+      include: {
+        clothes: true,
+      },
+    });
+
+    const userClothesList = userFavItem.clothes;
+    let foundCLothes = false;
+
+    userClothesList.map((clothe) => {
+      if (clothe.id === clothesID) {
+        foundCLothes = true;
+      }
+    });
+
+    if (foundCLothes) {
+      await this.database.users.update({
+        where: { id: user.id },
+        data: {
+          clothes: {
+            disconnect: {
+              id: clothe.id,
+            },
+          },
+        },
+      });
+      return { message: 'Jogo removido da lista' };
+    } else {
+      await this.database.users.update({
+        where: { id: user.id },
+        data: {
+          clothes: {
+            connect: {
+              id: clothe.id,
+            },
+          },
+        },
+      });
+      return { message: 'Jogo adicionado a lista' };
+    }
+  }
 }

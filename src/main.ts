@@ -11,7 +11,9 @@ async function bootstrap() {
 
   const config = new DocumentBuilder()
     .setTitle('Austral Dojo')
-    .setDescription('API para loja de roupas')
+    .setDescription(
+      'API que simula a loja de compras, vendas e trocas de itens de anime, roupas, acessórios...',
+    )
     .setVersion('1.0')
     .addTag('austral')
     .addBearerAuth()

@@ -46,7 +46,7 @@ export class ClothesService {
       where: { id },
     });
 
-    if (!game) {
+    if (!cloth) {
       throw new NotFoundException('A ID nao foi localizada');
     }
     return cloth;

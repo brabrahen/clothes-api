@@ -6,7 +6,7 @@ import {
   UseGuards,
   Param,
 } from '@nestjs/common';
-import { UserService } from './user.service';
+import { UsersService } from './user.service';
 import { DtoUser } from './dto/user.dto';
 import { Users } from '@prisma/client';
 import { AuthGuard } from '@nestjs/passport';
@@ -16,7 +16,7 @@ import { AuthUser } from '../auth/auth-user.decorator';
 @ApiTags('user')
 @Controller('user')
 export class UserController {
-  constructor(private service: UserService) {}
+  constructor(private service: UsersService) {}
 
   @Post('register')
   @ApiOperation({
@@ -32,7 +32,7 @@ export class UserController {
     summary: 'Adicionar uma peça na lista de usuário ou remover',
   })
   @ApiBearerAuth()
-  addList(@AuthUser() users: Users, @Param('id') clothesId: string) {
-    return this.service.addList(users, clothesId);
+  addToCart(@AuthUser() users: Users, @Param('id') clothesId: string) {
+    return this.service.addToCart(users, clothesId);
   }
 }
